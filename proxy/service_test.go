@@ -14,7 +14,7 @@ import (
 func TestProxyServerStart(t *testing.T) {
 	var err error
 	var tx types.Transaction
-	tx_test := "0x1c7770f04251de106344bc5e4c25a27143db9d40504045039d3d25c5b20b7740"
+	tx_test := "0x60891c813816bb378ee8af428c5eb53b0479c980307d265e4abe39b4efd02e1d"
 
 	dbpath, dbenv := os.LookupEnv("TEST_LMDB_DIR")
 	if !dbenv {
@@ -44,4 +44,5 @@ func TestProxyServerStart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	t.Logf("tx %v", tx_test)
 }

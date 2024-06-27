@@ -52,7 +52,7 @@ func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
 	tx := &types.Transaction{}
 
 	kp := make([]byte, len(k) + 7)
-	copy(kp, []byte("tx/raw/"))
+	copy(kp, []byte("tx/src/"))
 	copy(kp[7:], k)
 
 	err := l.env.View(func(txn *lmdb.Txn) (error) {
@@ -68,7 +68,7 @@ func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
 	if err != nil {
 		return tx, err
 	}
-	err = tx.UnmarshalBinary(b)
+	err = tx.UnmarshalJSON(b)
 	if err != nil {
 		return nil, err
 	}
