@@ -2,7 +2,10 @@ module defalsify.org/go-eth-proxy
 
 go 1.22.4
 
-require github.com/ethereum/go-ethereum v1.14.5
+require (
+	github.com/ethereum/go-ethereum v1.14.5
+	github.com/ledgerwatch/lmdb-go v1.18.2
+)
 
 require (
 	github.com/Microsoft/go-winio v0.6.2 // indirect
