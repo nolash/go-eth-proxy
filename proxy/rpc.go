@@ -43,7 +43,7 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var rr io.Reader
 	msg := jsonRpcMsg{}
 	b := make([]byte, r.ContentLength)
-	_, err := io.ReadFull(r.Body, b)
+	c, err := io.ReadFull(r.Body, b)
 	if (err != nil) {
 		log.Printf("%s", err)
 		r.Body.Close()
@@ -71,10 +71,12 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 	}
-	client_req := r.Clone(r.Context())
-	client_req.RequestURI = ""
+
+	client_req := &http.Request{}
 	client_req.Method = "POST"
 	client_req.URL = s.uri
+	client_req.Body = r.Body
+	client_req.ContentLength = int64(c)
 	client := &http.Client{}
 	res, err := client.Do(client_req)
 	if err != nil {
@@ -83,7 +85,11 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
+	if res.StatusCode != http.StatusOK {
+		v, _ := io.ReadAll(res.Body)
+		log.Printf("%s", v)
+	}
 	w.WriteHeader(res.StatusCode)
-	rr = io.TeeReader(r.Body, w)
+	rr = io.TeeReader(res.Body, w)
 	io.ReadAll(rr)
 }
