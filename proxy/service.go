@@ -20,10 +20,6 @@ func NewProxyService(store store.Store) (*ProxyService) {
 	}
 }
 
-func (p *ProxyService) GasPrice() (string, error) {
-	return "0x0", nil
-}
-
 func (p *ProxyService) GetTransactionByHash(ctx context.Context, hsh string) (*types.Transaction, error) {
 	log.Printf("get tx hash %s", hsh)
 	b := common.FromHex(hsh)
