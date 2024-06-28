@@ -23,7 +23,7 @@ func main() {
 	defer db.Close()
 
 	svc := proxy.NewProxyService(db)
-	h, err := proxy.NewProxyServer(svc, flag.Args()[0])
+	h, err := proxy.NewProxyServer(svc, flag.Arg(0))
 	if err != nil {
 		log.Printf("%s", err)
 		os.Exit(1)

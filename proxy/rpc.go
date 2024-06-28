@@ -24,9 +24,14 @@ type ProxyServer struct {
 }
 
 func NewProxyServer(svc *ProxyService, remoteURI string) (*ProxyServer, error) {
-	uri, err := url.Parse(remoteURI)
-	if err != nil {
-		return nil, err
+	var uri *url.URL
+	var err error
+
+	if remoteURI != "" {
+		uri, err = url.Parse(remoteURI)
+		if err != nil {
+			return nil, err
+		}
 	}
 	srv := &ProxyServer{
 		Server: rpc.NewServer(),
@@ -70,6 +75,12 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			s.Server.ServeHTTP(w, r)
 			return
 		}
+	}
+
+	if s.uri == nil {
+		log.Printf("missing remote side for unproxied method: %s", msg.Method)
+		w.WriteHeader(http.StatusBadGateway)
+		return
 	}
 
 	client_req := &http.Request{}
