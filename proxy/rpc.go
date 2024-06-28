@@ -68,7 +68,7 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	r.Body = io.NopCloser(rr)
 
 	for _, k := range([]string{
-		"eth_getTransactionFromHash",
+		"eth_getTransactionByHash",
 	}) {
 		if msg.Method == k {
 			log.Printf("match %s", msg.Method)
