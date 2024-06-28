@@ -5,6 +5,7 @@ import (
 	"log"
 	"os"
 	"net/http"
+	"strings"
 
 	"defalsify.org/go-eth-proxy/proxy"
 	"defalsify.org/go-eth-proxy/store/lmdb"
@@ -14,7 +15,10 @@ import (
 
 func main() {
 	dbpath := flag.String("cachepath", ".", "Path to lmdb data")
+	host := flag.String("host", "0.0.0.0", "Remote host")
+	port := flag.String("port", "8545", "Remote path")
 	flag.Parse()
+
 	db, err := lmdb.NewStore(*dbpath)
 	if err != nil {
 		log.Printf("%s", err)
@@ -30,7 +34,7 @@ func main() {
 	}
 	srv := &http.Server{
 		Handler: h,
-		Addr: "0.0.0.0:8080",
+		Addr: strings.Join([]string{*host, *port}, ":"),
 	}
 	err = srv.ListenAndServe()
 	if err != nil {
