@@ -40,7 +40,7 @@ func TestProxyServerStart(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Logf("mods %s", mods)
-	err = client.Call(&tx, "eth_getTransaction", tx_test)
+	err = client.Call(&tx, "eth_getTransactionByHash", tx_test)
 	if err != nil {
 		t.Fatal(err)
 	}

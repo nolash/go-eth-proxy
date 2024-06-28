@@ -2,6 +2,7 @@ package proxy
 
 import (
 	"context"
+	"log"
 
 	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ethereum/go-ethereum/common"
@@ -19,7 +20,12 @@ func NewProxyService(store store.Store) (*ProxyService) {
 	}
 }
 
-func (p *ProxyService) GetTransaction(ctx context.Context, hsh string) (*types.Transaction, error) {
+func (p *ProxyService) GasPrice() (string, error) {
+	return "0x0", nil
+}
+
+func (p *ProxyService) GetTransactionByHash(ctx context.Context, hsh string) (*types.Transaction, error) {
+	log.Printf("get tx hash %s", hsh)
 	b := common.FromHex(hsh)
 	tx, err := p.store.GetTransaction(b)
 	if err != nil {
