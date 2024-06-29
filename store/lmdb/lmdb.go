@@ -15,9 +15,11 @@ type LmdbStore struct {
 	dbi lmdb.DBI
 }
 
+/// TODO: not create
 func NewStore(path string) (*LmdbStore, error) {
 	var err error
 
+	log.Printf("lmdb store path: %s", path)
 	o := &LmdbStore{}
 	o.env, err = lmdb.NewEnv()
 	if err != nil {
@@ -68,10 +70,12 @@ func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
 	if err != nil {
 		return tx, err
 	}
+	log.Printf("lmdn result: %s", b)
 	err = tx.UnmarshalJSON(b)
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("tx %s gasprice %u gas %u", tx.Type(), tx.GasPrice(), tx.Gas())
 	return tx, err
 }
 

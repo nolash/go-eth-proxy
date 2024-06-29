@@ -7,21 +7,75 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+//	"strconv"
 
 	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type jsonRpcMsg struct {
-	Jsonrpc string
-	Id string
 	Method string
-	Params []any
 
 }
+
+type jsonRpcError struct {
+	Code int
+}
+
+type jsonRpcResponse struct {
+	Error jsonRpcError
+}
+
 type ProxyServer struct {
 	*rpc.Server
 	uri *url.URL
 }
+
+type proxyWriter struct {
+	header map[string][]string
+	status int
+	data *bytes.Buffer
+	afterHeader bool
+}
+
+
+func (p *proxyWriter) Header() http.Header {
+	return p.header
+}
+
+func (p *proxyWriter) Write(b []byte) (int, error) {
+	log.Printf("proxyserver %s", b)
+	return p.data.Write(b)
+}
+
+func (p *proxyWriter) WriteHeader(status int) {
+	p.status = status
+
+}
+
+func (p *proxyWriter) Copy(w http.ResponseWriter) (int, error) {
+	c := 0
+	l := p.data.Len()
+	b := p.data.Bytes()
+	for ;c < l; {
+		r, err := w.Write(b[c:])
+		if err != nil {
+			return 0, err
+		}
+		c += r
+	}
+	return c, nil
+}
+
+func newProxyWriter() *proxyWriter {
+	b := make([]byte, 0, 1024)
+	p := &proxyWriter{
+		header: make(map[string][]string),
+		data: bytes.NewBuffer(b),
+	}
+	return p
+}
+
+
 
 func NewProxyServer(svc *ProxyService, remoteURI string) (*ProxyServer, error) {
 	var uri *url.URL
@@ -45,7 +99,7 @@ func NewProxyServer(svc *ProxyService, remoteURI string) (*ProxyServer, error) {
 }
 
 func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	var rr io.Reader
+	//var rrr io.Reader
 	msg := jsonRpcMsg{}
 	b := make([]byte, r.ContentLength)
 	c, err := io.ReadFull(r.Body, b)
@@ -64,16 +118,42 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rr = bytes.NewReader(b)
+	rr := bytes.NewReader(b)
 	r.Body = io.NopCloser(rr)
 
 	for _, k := range([]string{
 		"eth_getTransactionByHash",
 	}) {
+		rw := newProxyWriter()
 		if msg.Method == k {
-			log.Printf("match %s", msg.Method)
-			s.Server.ServeHTTP(w, r)
-			return
+			s.Server.ServeHTTP(rw, r)
+			rsp := jsonRpcResponse{}
+			err = json.Unmarshal(b, &rsp)
+			if (err != nil) {
+				log.Printf("%s", err)
+				r.Body.Close()
+				w.WriteHeader(http.StatusInternalServerError)
+				return
+			}
+			//hd := rw.Header()
+			//statusHd := hd["status"]
+			//log.Printf("got status %s from proxy", statusHd)
+			//if len(statusHd) > 0 && statusHd[0][:1] == "2" {
+			if rsp.Error.Code == 0 {
+//				statusCode, err := strconv.Atoi(hd["Status"][0])
+//				if err != nil {
+//					r.Body.Close()
+//					w.WriteHeader(http.StatusInternalServerError)
+//					return
+//				}
+//				rw.WriteHeader(statusCode)
+				rw.WriteHeader(http.StatusOK)
+				rw.Copy(w)
+				return
+			}
+
+			log.Printf("not found in proxy: %s", k)
+			rr.Seek(0, io.SeekStart)
 		}
 	}
 
@@ -101,6 +181,6 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		log.Printf("%s", v)
 	}
 	w.WriteHeader(res.StatusCode)
-	rr = io.TeeReader(res.Body, w)
-	io.ReadAll(rr)
+	rrr := io.TeeReader(res.Body, w)
+	io.ReadAll(rrr)
 }
