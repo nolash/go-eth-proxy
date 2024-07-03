@@ -8,3 +8,4 @@ type Store interface {
 	GetTransaction(b []byte) (*types.Transaction, error)
 	Close()
 }
+

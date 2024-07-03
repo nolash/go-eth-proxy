@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strings"
 
-	"defalsify.org/go-eth-proxy/proxy"
+	"defalsify.org/go-eth-proxy/rpc/geth"
 	"defalsify.org/go-eth-proxy/store/lmdb"
 
 )
@@ -26,8 +26,7 @@ func main() {
 	}
 	defer db.Close()
 
-	svc := proxy.NewProxyService(db)
-	h, err := proxy.NewProxyServer(svc, flag.Arg(0))
+	h, err := geth.NewGethBackend(db) //svc, flag.Arg(0))
 	if err != nil {
 		log.Printf("%s", err)
 		os.Exit(1)

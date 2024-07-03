@@ -1,4 +1,5 @@
-package proxy
+package rpc
+
 
 import (
 	"bytes"
@@ -8,8 +9,6 @@ import (
 	"net/http"
 	"net/url"
 //	"strconv"
-
-	"github.com/ethereum/go-ethereum/rpc"
 )
 
 type jsonRpcMsg struct {
@@ -26,7 +25,7 @@ type jsonRpcResponse struct {
 }
 
 type ProxyServer struct {
-	*rpc.Server
+	Server http.Handler
 	uri *url.URL
 }
 
@@ -75,9 +74,7 @@ func newProxyWriter() *proxyWriter {
 	return p
 }
 
-
-
-func NewProxyServer(svc *ProxyService, remoteURI string) (*ProxyServer, error) {
+func NewProxyServer(backend http.Handler, remoteURI string) (*ProxyServer, error) {
 	var uri *url.URL
 	var err error
 
@@ -88,12 +85,8 @@ func NewProxyServer(svc *ProxyService, remoteURI string) (*ProxyServer, error) {
 		}
 	}
 	srv := &ProxyServer{
-		Server: rpc.NewServer(),
+		Server: backend,
 		uri: uri,
-	}
-	err = srv.Server.RegisterName("eth", svc)
-	if err != nil {
-		return nil, err
 	}
 	return srv, nil
 }
