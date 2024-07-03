@@ -50,8 +50,8 @@ func NewStore(path string) (*LmdbStore, error) {
 
 
 func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
+	log.Printf("get tx hash %s", hsh)
 	var b []byte
-	tx := &types.Transaction{}
 
 	kp := make([]byte, len(k) + 7)
 	copy(kp, []byte("tx/src/"))
@@ -71,12 +71,6 @@ func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
 		return tx, err
 	}
 	log.Printf("lmdn result: %s", b)
-	err = tx.UnmarshalJSON(b)
-	if err != nil {
-		return nil, err
-	}
-	log.Printf("tx %s gasprice %u gas %u", tx.Type(), tx.GasPrice(), tx.Gas())
-	return tx, err
 }
 
 

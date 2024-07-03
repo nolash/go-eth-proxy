@@ -13,7 +13,11 @@ import (
 
 type jsonRpcMsg struct {
 	Method string
+}
 
+type jsonRpcMsgFull struct {
+	Method string
+	Params []any
 }
 
 type jsonRpcError struct {
@@ -22,6 +26,10 @@ type jsonRpcError struct {
 
 type jsonRpcResponse struct {
 	Error jsonRpcError
+}
+
+type jsonRpcResponseFull struct {
+	Result any
 }
 
 type ProxyServer struct {
@@ -177,3 +185,4 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	rrr := io.TeeReader(res.Body, w)
 	io.ReadAll(rrr)
 }
+

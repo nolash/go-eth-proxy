@@ -2,13 +2,12 @@ package geth
 
 import (
 	"context"
-	"log"
-
-	"github.com/ethereum/go-ethereum/core/types"
-	"github.com/ethereum/go-ethereum/common"
+	
+	"github.com/go-ethereum/ethereum/core/types"
 
 	"defalsify.org/go-eth-proxy/store"
 )
+
 
 type ProxyService struct {
 	store store.Store
@@ -21,12 +20,14 @@ func NewProxyService(store store.Store) (*ProxyService) {
 }
 
 func (p *ProxyService) GetTransactionByHash(ctx context.Context, hsh string) (*types.Transaction, error) {
-	log.Printf("get tx hash %s", hsh)
-	b := common.FromHex(hsh)
-	tx, err := p.store.GetTransaction(b)
+	tx := &types.Transaction{}
+
+	err = tx.UnmarshalJSON(b)
 	if err != nil {
 		return nil, err
 	}
+	log.Printf("tx %s gasprice %u gas %u", tx.Type(), tx.GasPrice(), tx.Gas())
+	return tx, err
 
 	return tx, nil
 }
