@@ -29,6 +29,8 @@ type jsonRpcResponse struct {
 }
 
 type jsonRpcResponseFull struct {
+	Jsonrpc string
+	Id string
 	Result any
 }
 
@@ -96,6 +98,7 @@ func NewProxyServer(backend http.Handler, remoteURI string) (*ProxyServer, error
 		Server: backend,
 		uri: uri,
 	}
+	log.Printf("proxy server shadowing: %s", uri)
 	return srv, nil
 }
 
@@ -163,6 +166,7 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
+	log.Printf("foo")
 
 	client_req := &http.Request{}
 	client_req.Method = "POST"

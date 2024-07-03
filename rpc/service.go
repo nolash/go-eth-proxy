@@ -1,9 +1,10 @@
 package rpc
 
 import (
+	"bytes"
 	"context"
-
-	"github.com/ethereum/go-ethereum/common"
+	"encoding/json"
+	"log"
 
 	"defalsify.org/go-eth-proxy/store"
 )
@@ -20,16 +21,25 @@ func NewProxyService(store store.Store) (*LiteralProxyService) {
 
 
 func (p *LiteralProxyService) GetTransactionByHash(ctx context.Context, hsh string) ([]byte, error) {
-	b := common.FromHex(hsh)
-	tx, err := p.store.GetTransaction(b)
+	var err error
+
+	b := []byte(hsh)
+	b, err = p.store.GetTransaction(b)
 	if err != nil {
 		return nil, err
 	}
 
-	b, err = tx.MarshalJSON()
-	if err != nil {
-		return nil, err
+	log.Printf("gettin for %x %s", hsh, b)
+	j := &jsonRpcResponseFull{
+		Jsonrpc: "2.0",
+		Id: "",
+		Result: string(b),
 	}
 
-	return b, nil	
+	b = []byte{}
+	r := bytes.NewBuffer(b)
+	o := json.NewEncoder(r)
+	o.Encode(j)
+
+	return r.Bytes(), nil	
 }

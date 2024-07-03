@@ -7,12 +7,10 @@ import (
 	"net/http"
 	"strings"
 
-	"defalsify.org/go-eth-proxy/rpc/geth"
 	"defalsify.org/go-eth-proxy/rpc"
 	"defalsify.org/go-eth-proxy/store/lmdb"
 
 )
-
 
 func main() {
 	log.SetOutput(os.Stderr)
@@ -28,12 +26,8 @@ func main() {
 	}
 	defer db.Close()
 
-	h, err := geth.NewGethBackend(db) //svc, flag.Arg(0))
-	if err != nil {
-		log.Printf("%s", err)
-		os.Exit(1)
-	}
-
+	svc := rpc.NewProxyService(db)
+	h := rpc.NewBackend(svc) //svc, flag.Arg(0))
 	prx, err := rpc.NewProxyServer(h, flag.Arg(0))
 	if err != nil {
 		log.Printf("%s", err)

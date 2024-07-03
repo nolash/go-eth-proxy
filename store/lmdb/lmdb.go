@@ -3,7 +3,6 @@ package lmdb
 import (
 	"log"
 
-	"github.com/ethereum/go-ethereum/core/types"
 	"github.com/ledgerwatch/lmdb-go/lmdb"
 
 	"defalsify.org/go-eth-proxy/store"
@@ -49,8 +48,8 @@ func NewStore(path string) (*LmdbStore, error) {
 }
 
 
-func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
-	log.Printf("get tx hash %s", hsh)
+//func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
+func (l *LmdbStore) GetTransaction(k []byte) ([]byte, error) {
 	var b []byte
 
 	kp := make([]byte, len(k) + 7)
@@ -68,9 +67,10 @@ func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
 		return nil
 	})
 	if err != nil {
-		return tx, err
+		return nil, err
 	}
 	log.Printf("lmdn result: %s", b)
+	return b, nil
 }
 
 
