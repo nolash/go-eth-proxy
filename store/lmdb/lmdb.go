@@ -1,6 +1,7 @@
 package lmdb
 
 import (
+	"encoding/binary"
 	"log"
 
 	"github.com/ledgerwatch/lmdb-go/lmdb"
@@ -47,16 +48,16 @@ func NewStore(path string) (*LmdbStore, error) {
 	return o, nil
 }
 
-
-func (l *LmdbStore) GetTransaction(k []byte) ([]byte, error) {
+func (l *LmdbStore) get(pfx string, k []byte) ([]byte, error) {
 	var b []byte
 
-	kp := make([]byte, len(k) + 7)
-	copy(kp, []byte("tx/src/"))
-	copy(kp[7:], k)
+	n := len(pfx)
+	kp := make([]byte, len(k) + n)
+	copy(kp, []byte(pfx))
+	copy(kp[n:], k)
 
 	err := l.env.View(func(txn *lmdb.Txn) (error) {
-		log.Printf("gettx %x %v", kp, txn)
+		log.Printf("get %x %v", kp, txn)
 		v, err := txn.Get(l.dbi, kp)
 		if err != nil {
 			return err
@@ -72,6 +73,26 @@ func (l *LmdbStore) GetTransaction(k []byte) ([]byte, error) {
 	return b, nil
 }
 
+
+func (l *LmdbStore) GetTransaction(k []byte) ([]byte, error) {
+	return l.get("tx/src/", k)
+}
+
+func (l *LmdbStore) GetBlockNumber(n uint64) ([]byte, error) {
+	var err error
+	b := make([]byte, 8)
+	binary.BigEndian.PutUint64(b, n)
+	
+	b, err = l.get("block/num/", b)
+	if err != nil {
+		return nil, err
+	}
+	return l.get("block/hash/", b)
+}
+
+func (l *LmdbStore) GetBlockHash(k []byte) ([]byte, error) {
+	return l.get("block/hash/", k)
+}
 
 func (l *LmdbStore) Close() {
 	l.env.Close()
