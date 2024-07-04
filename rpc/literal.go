@@ -45,9 +45,16 @@ func (l *literalBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// TODO: make sure getblockbynumber is hex input
 	switch msg.Method {
 		case "eth_getTransactionByHash":
 			b, err = l.svc.GetTransactionByHash(r.Context(), msg.Id, msg.Params[0].(string))
+		case "eth_getTransactionReceipt":
+			b, err = l.svc.GetTransactionReceipt(r.Context(), msg.Id, msg.Params[0].(string))
+		case "eth_getBlockByHash":
+			b, err = l.svc.GetBlockByHash(r.Context(), msg.Id, msg.Params[0].(string))
+		case "eth_getBlockByNumber":
+			b, err = l.svc.GetBlockByNumber(r.Context(), msg.Id, msg.Params[0].(string))
 		default:
 			s := fmt.Sprintf("Status: %d Method not supported", http.StatusBadRequest)
 			w.Write([]byte(s))

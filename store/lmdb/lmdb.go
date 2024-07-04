@@ -1,7 +1,6 @@
 package lmdb
 
 import (
-	"encoding/binary"
 	"log"
 
 	"github.com/ledgerwatch/lmdb-go/lmdb"
@@ -78,20 +77,22 @@ func (l *LmdbStore) GetTransaction(k []byte) ([]byte, error) {
 	return l.get("tx/src/", k)
 }
 
-func (l *LmdbStore) GetBlockNumber(n uint64) ([]byte, error) {
-	var err error
+func (l *LmdbStore) GetBlockNumber(n []byte) ([]byte, error) {
 	b := make([]byte, 8)
-	binary.BigEndian.PutUint64(b, n)
-	
-	b, err = l.get("block/num/", b)
+	copy(b[8-len(n):], n)
+	k, err := l.get("block/num/", b)
 	if err != nil {
 		return nil, err
 	}
-	return l.get("block/hash/", b)
+	return l.get("block/src/", k)
 }
 
-func (l *LmdbStore) GetBlockHash(k []byte) ([]byte, error) {
-	return l.get("block/hash/", k)
+func (l *LmdbStore) GetBlock(k []byte) ([]byte, error) {
+	return l.get("block/src/", k)
+}
+
+func (l *LmdbStore) GetTransactionReceipt(k []byte) ([]byte, error) {
+	return l.get("rcpt/src/", k)
 }
 
 func (l *LmdbStore) Close() {
