@@ -131,6 +131,7 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}) {
 		rw := newProxyWriter()
 		if msg.Method == k {
+			log.Printf("proxy match method %s %s", k, msg.Method)
 			s.Server.ServeHTTP(rw, r)
 			rsp := jsonRpcResponse{}
 			err = json.Unmarshal(b, &rsp)
