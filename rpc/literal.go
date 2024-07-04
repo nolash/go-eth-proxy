@@ -47,7 +47,7 @@ func (l *literalBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	switch msg.Method {
 		case "eth_getTransactionByHash":
-			b, err = l.svc.GetTransactionByHash(r.Context(), msg.Params[0].(string))
+			b, err = l.svc.GetTransactionByHash(r.Context(), msg.Id, msg.Params[0].(string))
 		default:
 			s := fmt.Sprintf("Status: %d Method not supported", http.StatusBadRequest)
 			w.Write([]byte(s))
@@ -62,5 +62,4 @@ func (l *literalBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	w.Write([]byte(b))
-
 }

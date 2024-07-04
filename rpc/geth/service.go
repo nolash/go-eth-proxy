@@ -5,6 +5,7 @@ import (
 	"log"
 	
 	"github.com/ethereum/go-ethereum/core/types"
+	"github.com/ethereum/go-ethereum/common"
 
 	"defalsify.org/go-eth-proxy/store"
 )
@@ -23,7 +24,10 @@ func NewProxyService(store store.Store) (*ProxyService) {
 func (p *ProxyService) GetTransactionByHash(ctx context.Context, hsh string) (*types.Transaction, error) {
 	tx := &types.Transaction{}
 
-	err := tx.UnmarshalJSON([]byte(hsh))
+	b := common.FromHex(hsh)
+	r, err := p.store.GetTransaction(b)
+
+	err = tx.UnmarshalJSON(r)
 	if err != nil {
 		return nil, err
 	}

@@ -48,7 +48,6 @@ func NewStore(path string) (*LmdbStore, error) {
 }
 
 
-//func (l *LmdbStore) GetTransaction(k []byte) (*types.Transaction, error) {
 func (l *LmdbStore) GetTransaction(k []byte) ([]byte, error) {
 	var b []byte
 
@@ -66,10 +65,10 @@ func (l *LmdbStore) GetTransaction(k []byte) ([]byte, error) {
 		copy(b, v)
 		return nil
 	})
+	log.Printf("lmdb result: %s", b)
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("lmdn result: %s", b)
 	return b, nil
 }
 

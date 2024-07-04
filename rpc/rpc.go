@@ -8,7 +8,6 @@ import (
 	"log"
 	"net/http"
 	"net/url"
-//	"strconv"
 )
 
 type jsonRpcMsg struct {
@@ -17,6 +16,7 @@ type jsonRpcMsg struct {
 
 type jsonRpcMsgFull struct {
 	Method string
+	Id string
 	Params []any
 }
 
@@ -29,9 +29,9 @@ type jsonRpcResponse struct {
 }
 
 type jsonRpcResponseFull struct {
-	Jsonrpc string
-	Id string
-	Result any
+	Jsonrpc string	`json:"jsonrpc"`
+	Id string	`json:"id"`
+	Result any	`json:"result"`
 }
 
 type ProxyServer struct {
@@ -103,7 +103,6 @@ func NewProxyServer(backend http.Handler, remoteURI string) (*ProxyServer, error
 }
 
 func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//var rrr io.Reader
 	msg := jsonRpcMsg{}
 	b := make([]byte, r.ContentLength)
 	c, err := io.ReadFull(r.Body, b)
@@ -139,18 +138,7 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			//hd := rw.Header()
-			//statusHd := hd["status"]
-			//log.Printf("got status %s from proxy", statusHd)
-			//if len(statusHd) > 0 && statusHd[0][:1] == "2" {
 			if rsp.Error.Code == 0 {
-//				statusCode, err := strconv.Atoi(hd["Status"][0])
-//				if err != nil {
-//					r.Body.Close()
-//					w.WriteHeader(http.StatusInternalServerError)
-//					return
-//				}
-//				rw.WriteHeader(statusCode)
 				rw.WriteHeader(http.StatusOK)
 				rw.Copy(w)
 				return
@@ -166,7 +154,6 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadGateway)
 		return
 	}
-	log.Printf("foo")
 
 	client_req := &http.Request{}
 	client_req.Method = "POST"
