@@ -126,6 +126,8 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	for _, k := range([]string{
 		"eth_getTransactionByHash",
+		"eth_getBlockByNumber",
+		"eth_getBlockByHash",
 	}) {
 		rw := newProxyWriter()
 		if msg.Method == k {
