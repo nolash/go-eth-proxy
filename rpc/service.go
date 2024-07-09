@@ -3,6 +3,7 @@ package rpc
 import (
 	"context"
 	"fmt"
+	"log"
 
 	"github.com/ethereum/go-ethereum/common"
 
@@ -19,12 +20,23 @@ func NewProxyService(store store.Store) (*LiteralProxyService) {
 	}
 }
 
-func wrapResult(id string, result []byte) []byte {
-	s := fmt.Sprintf("{\"jsonrpc\":\"2.0\",\"id\":\"%s\",\"result\":%s}", id, result)
-	return []byte(s)
+func wrapResult(id any, result []byte) ([]byte, error) {
+	var s string
+	var id_i int
+	id_s, ok := id.(string)
+	if ok {
+		s = fmt.Sprintf("{\"jsonrpc\":\"2.0\",\"id\":\"%s\",\"result\":%s}", id_s, result)
+	} else {
+		id_i, ok = id.(int)
+		if !ok {
+			return nil, fmt.Errorf("id not valid type")
+		}
+		s = fmt.Sprintf("{\"jsonrpc\":\"2.0\",\"id\":%d,\"result\":%s}", id_i, result)
+	}
+	return []byte(s), nil
 }
 
-func (p *LiteralProxyService) GetTransactionByHash(ctx context.Context, id string, hsh string) ([]byte, error) {
+func (p *LiteralProxyService) GetTransactionByHash(ctx context.Context, id any, hsh string) ([]byte, error) {
 	var err error
 
 	b := common.FromHex(hsh)
@@ -33,11 +45,10 @@ func (p *LiteralProxyService) GetTransactionByHash(ctx context.Context, id strin
 		return nil, err
 	}
 
-	r := wrapResult(id, b)
-	return r, nil
+	return wrapResult(id, b)
 }
 
-func (p *LiteralProxyService) GetTransactionReceipt(ctx context.Context, id string, hsh string) ([]byte, error) {
+func (p *LiteralProxyService) GetTransactionReceipt(ctx context.Context, id any, hsh string) ([]byte, error) {
 	var err error
 
 	b := common.FromHex(hsh)
@@ -46,11 +57,10 @@ func (p *LiteralProxyService) GetTransactionReceipt(ctx context.Context, id stri
 		return nil, err
 	}
 
-	r := wrapResult(id, b)
-	return r, nil
+	return wrapResult(id, b)
 }
 
-func (p *LiteralProxyService) GetBlockByHash(ctx context.Context, id string, hsh string) ([]byte, error) {
+func (p *LiteralProxyService) GetBlockByHash(ctx context.Context, id any, hsh string) ([]byte, error) {
 	var err error
 
 	b := common.FromHex(hsh)
@@ -59,17 +69,16 @@ func (p *LiteralProxyService) GetBlockByHash(ctx context.Context, id string, hsh
 		return nil, err
 	}
 
-	r := wrapResult(id, b)
-	return r, nil
+	return wrapResult(id, b)
 }
 
-func (p *LiteralProxyService) GetBlockByNumber(ctx context.Context, id string, numhex string) ([]byte, error) {
+func (p *LiteralProxyService) GetBlockByNumber(ctx context.Context, id any, numhex string) ([]byte, error) {
 	b := common.FromHex(numhex)
 	b, err := p.store.GetBlockNumber(b)
+	log.Printf("result %v", b)
 	if err != nil {
 		return nil, err
 	}
 
-	r := wrapResult(id, b)
-	return r, nil
+	return wrapResult(id, b)
 }

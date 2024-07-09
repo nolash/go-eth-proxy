@@ -31,6 +31,6 @@ func (p *ProxyService) GetTransactionByHash(ctx context.Context, hsh string) (*t
 	if err != nil {
 		return nil, err
 	}
-	log.Printf("tx %s gasprice %u gas %u", tx.Type(), tx.GasPrice(), tx.Gas())
+	log.Printf("tx %v gasprice %d gas %d", tx.Type(), tx.GasPrice(), tx.Gas())
 	return tx, nil
 }

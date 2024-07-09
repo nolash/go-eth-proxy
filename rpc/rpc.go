@@ -4,10 +4,13 @@ package rpc
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"net/url"
+	"strconv"
+	"strings"
 )
 
 type jsonRpcMsg struct {
@@ -16,21 +19,23 @@ type jsonRpcMsg struct {
 
 type jsonRpcMsgFull struct {
 	Method string
-	Id string
+	Id any
 	Params []any
 }
 
-type jsonRpcError struct {
-	Code int
+type JsonRpcError struct {
+	Code int	`json:"code"`
+	Message string	`json:"message"`
 }
 
-type jsonRpcResponse struct {
-	Error jsonRpcError
+type JsonRpcResponse struct {
+	Id any			`json:"id"`
+	Error JsonRpcError	`json:"error"`
 }
 
 type jsonRpcResponseFull struct {
 	Jsonrpc string	`json:"jsonrpc"`
-	Id string	`json:"id"`
+	Id any		`json:"id"`
 	Result any	`json:"result"`
 }
 
@@ -40,8 +45,8 @@ type ProxyServer struct {
 }
 
 type proxyWriter struct {
+	Status int
 	header map[string][]string
-	status int
 	data *bytes.Buffer
 	afterHeader bool
 }
@@ -57,8 +62,8 @@ func (p *proxyWriter) Write(b []byte) (int, error) {
 }
 
 func (p *proxyWriter) WriteHeader(status int) {
-	p.status = status
-
+	p.Status = status
+	p.header["Status"] = []string{fmt.Sprintf("%d", status)}
 }
 
 func (p *proxyWriter) Copy(w http.ResponseWriter) (int, error) {
@@ -134,18 +139,29 @@ func (s *ProxyServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if msg.Method == k {
 			log.Printf("proxy match method %s %s", k, msg.Method)
 			s.Server.ServeHTTP(rw, r)
-			rsp := jsonRpcResponse{}
-			err = json.Unmarshal(b, &rsp)
+			hd := rw.Header()
+			parts := strings.SplitN(hd["Status"][0], " ", 1)
+			status, err := strconv.ParseInt(parts[0], 10, 16)
 			if (err != nil) {
-				log.Printf("%s", err)
 				r.Body.Close()
 				w.WriteHeader(http.StatusInternalServerError)
 				return
 			}
-			if rsp.Error.Code == 0 {
-				rw.WriteHeader(http.StatusOK)
-				rw.Copy(w)
-				return
+			if status < 300 && status >= 200 {
+				rsp := JsonRpcResponse{
+					Error: JsonRpcError{},
+				}
+				err = json.Unmarshal(b, &rsp)
+				if (err != nil) {
+					r.Body.Close()
+					w.WriteHeader(http.StatusInternalServerError)
+					return
+				}
+				if rsp.Error.Code == 0 {
+					rw.WriteHeader(http.StatusOK)
+					rw.Copy(w)
+					return
+				}
 			}
 
 			log.Printf("not found in proxy: %s", k)

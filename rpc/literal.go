@@ -24,10 +24,6 @@ func inJson(b []byte) (*jsonRpcMsgFull, error) {
 	return msg, err
 }
 
-func outJson(msg *jsonRpcResponse) []byte {
-	return []byte{}
-}
-
 func (l *literalBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	var err error
 
@@ -62,8 +58,7 @@ func (l *literalBackend) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err != nil {
-		s := fmt.Sprintf("Status: %d Not found", http.StatusNotFound)
-		w.Write([]byte(s))
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
